@@ -31,7 +31,6 @@ from apds9960.registers import (
     GESTURE_LEFT,
     GESTURE_UP,
     GESTURE_DOWN,
-    GESTURE_NONE,
     LED_BOOST_300,
 )
 
@@ -42,6 +41,64 @@ GPIO_INT_PIN = 4               # GPIO-Pin für INT-Leitung des APDS9960
 GESTURE_ENTRY_THRESHOLD = 30   # Niedriger = empfindlicher (Standard: 40)
 GESTURE_EXIT_THRESHOLD = 20    # Niedriger = mehr Daten gesammelt (Standard: 30)
 
+# gpiod v1.x vs v2.x haben komplett unterschiedliche APIs
+_GPIOD_V2 = hasattr(gpiod, "request_lines")
+
+
+def _setup_interrupt_v2():
+    """Interrupt mit gpiod v2.x API einrichten."""
+    request = gpiod.request_lines(
+        GPIO_CHIP,
+        consumer="apds9960-gesture",
+        config={GPIO_INT_PIN: gpiod.LineSettings(
+            direction=gpiod.Direction.INPUT,
+            edge_detection=gpiod.Edge.FALLING,
+            bias=gpiod.Bias.PULL_UP,
+        )},
+    )
+    return request
+
+
+def _wait_for_interrupt_v2(request, timeout=5.0):
+    """Auf Interrupt warten (gpiod v2.x)."""
+    if request.wait_edge_events(timeout=timeout):
+        request.read_edge_events()
+        return True
+    return False
+
+
+def _cleanup_v2(request):
+    """Aufräumen (gpiod v2.x)."""
+    request.release()
+
+
+def _setup_interrupt_v1():
+    """Interrupt mit gpiod v1.x API einrichten."""
+    chip = gpiod.Chip(GPIO_CHIP)
+    line = chip.get_line(GPIO_INT_PIN)
+    line.request(
+        consumer="apds9960-gesture",
+        type=gpiod.LINE_REQ_EV_FALLING_EDGE,
+        flags=gpiod.LINE_REQ_FLAG_BIAS_PULL_UP,
+    )
+    return (chip, line)
+
+
+def _wait_for_interrupt_v1(handle, timeout=5.0):
+    """Auf Interrupt warten (gpiod v1.x)."""
+    _chip, line = handle
+    if line.event_wait(sec=int(timeout), nsec=int((timeout % 1) * 1e9)):
+        line.event_read()
+        return True
+    return False
+
+
+def _cleanup_v1(handle):
+    """Aufräumen (gpiod v1.x)."""
+    chip, line = handle
+    line.release()
+    chip.close()
+
 
 def main():
     print("Gestengesteuerte Tastenkombinationen (Interrupt-Modus)")
@@ -51,6 +108,17 @@ def main():
     print("Hoch   -> F11")
     print("Runter -> F11")
     print("=" * 55)
+
+    if _GPIOD_V2:
+        print(f"gpiod API: v2.x")
+        setup_int = _setup_interrupt_v2
+        wait_int = _wait_for_interrupt_v2
+        cleanup_int = _cleanup_v2
+    else:
+        print(f"gpiod API: v1.x")
+        setup_int = _setup_interrupt_v1
+        wait_int = _wait_for_interrupt_v1
+        cleanup_int = _cleanup_v1
 
     sensor = APDS9960(bus=I2C_BUS)
 
@@ -63,15 +131,7 @@ def main():
     sensor.enable_gesture(interrupt=True)
 
     # gpiod: Interrupt-Pin konfigurieren (INT ist active-low)
-    request = gpiod.request_lines(
-        GPIO_CHIP,
-        consumer="apds9960-gesture",
-        config={GPIO_INT_PIN: gpiod.LineSettings(
-            direction=gpiod.Direction.INPUT,
-            edge_detection=gpiod.Edge.FALLING,
-            bias=gpiod.Bias.PULL_UP,
-        )},
-    )
+    handle = setup_int()
 
     print(f"Bereit. Warte auf Gesten (INT auf GPIO {GPIO_INT_PIN})...")
     print("Drücke Ctrl+C zum Beenden.\n")
@@ -79,9 +139,7 @@ def main():
     try:
         while True:
             # Blockiert bis der Sensor einen Interrupt auslöst (oder Timeout)
-            if request.wait_edge_events(timeout=5.0):
-                request.read_edge_events()  # Events konsumieren
-
+            if wait_int(handle):
                 # FIFO auslesen bis keine Daten mehr da sind
                 while sensor.gesture_available():
                     gesture = sensor.read_gesture()
@@ -104,10 +162,9 @@ def main():
 
                 sensor.clear_interrupts()
 
-            # Kurze Pause um CPU-Last niedrig zu halten
             time.sleep(0.01)
     finally:
-        request.release()
+        cleanup_int(handle)
         sensor.close()
 
 
