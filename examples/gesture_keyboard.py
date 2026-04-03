@@ -44,6 +44,9 @@ GESTURE_EXIT_THRESHOLD = 20    # Niedriger = mehr Daten gesammelt (Standard: 30)
 # gpiod v1.x vs v2.x haben komplett unterschiedliche APIs
 _GPIOD_V2 = hasattr(gpiod, "request_lines")
 
+if _GPIOD_V2:
+    from gpiod.line import Direction, Edge, Bias
+
 
 def _setup_interrupt_v2():
     """Interrupt mit gpiod v2.x API einrichten."""
@@ -51,9 +54,9 @@ def _setup_interrupt_v2():
         GPIO_CHIP,
         consumer="apds9960-gesture",
         config={GPIO_INT_PIN: gpiod.LineSettings(
-            direction=gpiod.Direction.INPUT,
-            edge_detection=gpiod.Edge.FALLING,
-            bias=gpiod.Bias.PULL_UP,
+            direction=Direction.INPUT,
+            edge_detection=Edge.FALLING,
+            bias=Bias.PULL_UP,
         )},
     )
     return request

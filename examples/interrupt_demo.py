@@ -23,6 +23,9 @@ PROXIMITY_THRESHOLD = 50
 
 _GPIOD_V2 = hasattr(gpiod, "request_lines")
 
+if _GPIOD_V2:
+    from gpiod.line import Direction, Edge, Bias
+
 
 def main():
     print("APDS9960 Interrupt Demo (gpiod)")
@@ -42,9 +45,9 @@ def main():
             GPIO_CHIP,
             consumer="apds9960-int",
             config={GPIO_LINE: gpiod.LineSettings(
-                direction=gpiod.Direction.INPUT,
-                edge_detection=gpiod.Edge.FALLING,
-                bias=gpiod.Bias.PULL_UP,
+                direction=Direction.INPUT,
+                edge_detection=Edge.FALLING,
+                bias=Bias.PULL_UP,
             )},
         )
         try:
