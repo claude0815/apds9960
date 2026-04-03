@@ -33,7 +33,6 @@ from apds9960.registers import (
     GESTURE_LEFT,
     GESTURE_UP,
     GESTURE_DOWN,
-    LED_BOOST_300,
 )
 
 # --- Konfiguration ---
@@ -144,7 +143,6 @@ def main():
     # Empfindlichkeit optimieren
     sensor.set_gesture_thresholds(enter=GESTURE_ENTRY_THRESHOLD,
                                   exit=GESTURE_EXIT_THRESHOLD)
-    sensor.set_led_boost(LED_BOOST_300)
 
     # Interrupt versuchen, sonst Polling
     int_handle = _try_setup_interrupt()
