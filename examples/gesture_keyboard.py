@@ -38,7 +38,7 @@ from apds9960.registers import (
 
 # --- Konfiguration ---
 I2C_BUS = 1
-GPIO_CHIP = "/dev/gpiochip4"  # RPi 5 (bei RPi 4: /dev/gpiochip0)
+GPIO_CHIP = "/dev/gpiochip0"  # RPi 5: pinctrl-rp1
 GPIO_INT_PIN = 4               # GPIO-Pin für INT-Leitung des APDS9960
 GESTURE_ENTRY_THRESHOLD = 30   # Niedriger = empfindlicher (Standard: 40)
 GESTURE_EXIT_THRESHOLD = 20    # Niedriger = mehr Daten gesammelt (Standard: 30)

@@ -17,7 +17,7 @@ import gpiod
 from apds9960 import APDS9960
 
 # Configuration
-GPIO_CHIP = "/dev/gpiochip4"  # RPi 5 uses gpiochip4
+GPIO_CHIP = "/dev/gpiochip0"  # RPi 5: pinctrl-rp1
 GPIO_LINE = 4                  # GPIO pin number for INT
 PROXIMITY_THRESHOLD = 50
 
