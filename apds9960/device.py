@@ -337,7 +337,7 @@ class APDS9960:
 
             time.sleep(0.03)
 
-        if len(fifo_data) < 4:
+        if len(fifo_data) < 2:
             return GESTURE_NONE
 
         return self._decode_gesture(fifo_data)
