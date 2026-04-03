@@ -232,12 +232,21 @@ class APDS9960:
         """Enable ambient light / color sensing."""
         self.enable(power=True, als=True, als_int=interrupt)
 
-    def enable_gesture(self):
-        """Enable gesture detection."""
+    def enable_gesture(self, interrupt=False):
+        """Enable gesture detection.
+
+        Args:
+            interrupt: If True, enable gesture interrupt on INT pin.
+                       Connect INT pin to a GPIO and use gpiod to detect.
+        """
         # Reset gesture FIFO
         self._set_bits(REG_GCONF4, BIT_GFIFO_CLR)
         time.sleep(0.01)
         self._clear_bits(REG_GCONF4, BIT_GFIFO_CLR)
+
+        # Enable gesture interrupt if requested
+        if interrupt:
+            self._set_bits(REG_GCONF4, BIT_GIEN)
 
         self.enable(power=True, wait=True, proximity=True, gesture=True)
 
