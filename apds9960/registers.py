@@ -116,10 +116,10 @@ DEFAULT_GPEXTH = 30       # Gesture exit threshold
 DEFAULT_GCONF1 = 0x40     # 4 gesture events for interrupt, 1 event per fifo
 DEFAULT_GCONF2 = 0x19     # Gain 1x, LED drive 12.5mA, 8us gesture wait
 DEFAULT_GPULSE = 0x00     # 4us, 1 pulse (minimum)
-DEFAULT_GOFFSET_U = 0x80  # -128: strong negative offset for UP (saturated)
-DEFAULT_GOFFSET_D = 0     # DOWN is fine
-DEFAULT_GOFFSET_L = 0x80  # -128: strong negative offset for LEFT (saturated)
-DEFAULT_GOFFSET_R = 0     # RIGHT is near-ok
+DEFAULT_GOFFSET_U = 0     # Offsets not effective on cheap clones
+DEFAULT_GOFFSET_D = 0
+DEFAULT_GOFFSET_L = 0
+DEFAULT_GOFFSET_R = 0
 DEFAULT_GCONF3 = 0        # All photodiodes active during gesture
 DEFAULT_GCONF4 = 0        # Gesture interrupts disabled, gesture mode off
 

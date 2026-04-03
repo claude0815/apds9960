@@ -331,8 +331,7 @@ class APDS9960:
 
             for _ in range(fifo_level):
                 data = self._read_block(REG_GFIFO_U, 4)
-                # Only use valid readings (not saturated)
-                if any(d > 0 for d in data):
+                if not all(d == 0 for d in data):
                     fifo_data.append(GestureData(
                         up=data[0], down=data[1],
                         left=data[2], right=data[3]
@@ -346,73 +345,53 @@ class APDS9960:
         return self._decode_gesture(fifo_data)
 
     def _decode_gesture(self, data):
-        """Decode gesture from FIFO data using delta analysis."""
-        # Calculate ratios for first and last valid samples
-        ud_first = 0
-        lr_first = 0
-        ud_last = 0
-        lr_last = 0
+        """Decode gesture from FIFO data.
 
-        # Find first valid data point
-        for sample in data:
-            if (sample.up > self.GESTURE_THRESHOLD and
-                    sample.down > self.GESTURE_THRESHOLD and
-                    sample.left > self.GESTURE_THRESHOLD and
-                    sample.right > self.GESTURE_THRESHOLD):
-                ud_first = sample.up - sample.down
-                lr_first = sample.left - sample.right
-                break
+        Uses temporal changes in DOWN and RIGHT channels, since cheap
+        APDS9960 clones often have UP and LEFT permanently saturated at 255.
 
-        # Find last valid data point
-        for sample in reversed(data):
-            if (sample.up > self.GESTURE_THRESHOLD and
-                    sample.down > self.GESTURE_THRESHOLD and
-                    sample.left > self.GESTURE_THRESHOLD and
-                    sample.right > self.GESTURE_THRESHOLD):
-                ud_last = sample.up - sample.down
-                lr_last = sample.left - sample.right
-                break
+        Detection logic:
+        - DOWN channel changes → UP/DOWN gesture (hand blocks D photodiode)
+        - RIGHT channel changes → LEFT/RIGHT gesture (hand blocks R photodiode)
+        - Both channels rising → NEAR, both falling → FAR
+        """
+        # Extract D and R time series
+        d_values = [s.down for s in data]
+        r_values = [s.right for s in data]
 
-        # Calculate deltas
-        ud_delta = ud_last - ud_first
-        lr_delta = lr_last - lr_first
+        # Calculate range (max - min) for each channel
+        d_range = max(d_values) - min(d_values)
+        r_range = max(r_values) - min(r_values)
 
-        # Accumulate deltas
-        self._gesture_ud_delta += ud_delta
-        self._gesture_lr_delta += lr_delta
+        # Need minimum variation to detect a gesture
+        if d_range < self.GESTURE_SENSITIVITY and r_range < self.GESTURE_SENSITIVITY:
+            return GESTURE_NONE
 
-        # Determine gesture direction
-        if abs(self._gesture_ud_delta) > abs(self._gesture_lr_delta):
-            if abs(self._gesture_ud_delta) > self.GESTURE_SENSITIVITY:
-                if self._gesture_ud_delta < 0:
-                    gesture = GESTURE_UP
-                else:
-                    gesture = GESTURE_DOWN
-            else:
-                gesture = GESTURE_NONE
+        # Compare first quarter vs last quarter for direction
+        quarter = max(1, len(data) // 4)
+        d_first = sum(d_values[:quarter]) / quarter
+        d_last = sum(d_values[-quarter:]) / quarter
+        r_first = sum(r_values[:quarter]) / quarter
+        r_last = sum(r_values[-quarter:]) / quarter
+
+        d_delta = d_last - d_first
+        r_delta = r_last - r_first
+
+        # Determine dominant axis
+        if d_range > r_range:
+            # Vertical gesture (UP/DOWN) detected via DOWN channel
+            if abs(d_delta) < self.GESTURE_SENSITIVITY:
+                return GESTURE_NONE
+            # D rises → hand approaching from above (DOWN gesture)
+            # D falls → hand approaching from below (UP gesture)
+            return GESTURE_DOWN if d_delta > 0 else GESTURE_UP
         else:
-            if abs(self._gesture_lr_delta) > self.GESTURE_SENSITIVITY:
-                if self._gesture_lr_delta < 0:
-                    gesture = GESTURE_LEFT
-                else:
-                    gesture = GESTURE_RIGHT
-            else:
-                gesture = GESTURE_NONE
-
-        # Check for near/far gestures
-        if gesture == GESTURE_NONE:
-            total_first = sum(data[0])
-            total_last = sum(data[-1])
-            if total_first > 200 and total_last < 100:
-                gesture = GESTURE_FAR
-            elif total_first < 100 and total_last > 200:
-                gesture = GESTURE_NEAR
-
-        # Reset accumulators
-        self._gesture_ud_delta = 0
-        self._gesture_lr_delta = 0
-
-        return gesture
+            # Horizontal gesture (LEFT/RIGHT) detected via RIGHT channel
+            if abs(r_delta) < self.GESTURE_SENSITIVITY:
+                return GESTURE_NONE
+            # R rises → hand approaching from left (RIGHT gesture)
+            # R falls → hand approaching from right (LEFT gesture)
+            return GESTURE_RIGHT if r_delta > 0 else GESTURE_LEFT
 
     @staticmethod
     def gesture_name(gesture):
