@@ -91,7 +91,10 @@ from apds9960.registers import (
     DEFAULT_GCONF1,
     DEFAULT_GCONF2,
     DEFAULT_GPULSE,
-    DEFAULT_GOFFSET,
+    DEFAULT_GOFFSET_U,
+    DEFAULT_GOFFSET_D,
+    DEFAULT_GOFFSET_L,
+    DEFAULT_GOFFSET_R,
     DEFAULT_GCONF3,
     DEFAULT_GCONF4,
 )
@@ -161,10 +164,10 @@ class APDS9960:
         self._write_byte(REG_GPEXTH, DEFAULT_GPEXTH)
         self._write_byte(REG_GCONF1, DEFAULT_GCONF1)
         self._write_byte(REG_GCONF2, DEFAULT_GCONF2)
-        self._write_byte(REG_GOFFSET_U, DEFAULT_GOFFSET)
-        self._write_byte(REG_GOFFSET_D, DEFAULT_GOFFSET)
-        self._write_byte(REG_GOFFSET_L, DEFAULT_GOFFSET)
-        self._write_byte(REG_GOFFSET_R, DEFAULT_GOFFSET)
+        self._write_byte(REG_GOFFSET_U, DEFAULT_GOFFSET_U)
+        self._write_byte(REG_GOFFSET_D, DEFAULT_GOFFSET_D)
+        self._write_byte(REG_GOFFSET_L, DEFAULT_GOFFSET_L)
+        self._write_byte(REG_GOFFSET_R, DEFAULT_GOFFSET_R)
         self._write_byte(REG_GPULSE, DEFAULT_GPULSE)
         self._write_byte(REG_GCONF3, DEFAULT_GCONF3)
         self._write_byte(REG_GCONF4, DEFAULT_GCONF4)
@@ -447,6 +450,15 @@ class APDS9960:
         """Set gesture proximity entry/exit thresholds."""
         self._write_byte(REG_GPENTH, enter)
         self._write_byte(REG_GPEXTH, exit)
+
+    def set_gesture_offsets(self, up=0, down=0, left=0, right=0):
+        """Set gesture photodiode offsets (-128 to 127).
+
+        Use negative values to reduce readings for saturated photodiodes.
+        """
+        for val, reg in [(up, REG_GOFFSET_U), (down, REG_GOFFSET_D),
+                         (left, REG_GOFFSET_L), (right, REG_GOFFSET_R)]:
+            self._write_byte(reg, val & 0xFF)
 
     def set_proximity_thresholds(self, low=0, high=50):
         """Set proximity interrupt thresholds."""

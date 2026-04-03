@@ -13,6 +13,7 @@ from apds9960.registers import (
     REG_GFIFO_U, REG_GFLVL, REG_GSTATUS, BIT_GVALID,
     REG_CONTROL, REG_GCONF2, REG_PPULSE, REG_GPULSE, REG_CONFIG2,
     REG_GPENTH, REG_GPEXTH, REG_ENABLE,
+    REG_GOFFSET_U, REG_GOFFSET_D, REG_GOFFSET_L, REG_GOFFSET_R,
 )
 
 
@@ -53,6 +54,16 @@ def print_register_config(sensor):
     print(f"  G-Pulse:    {pulse_us[gplen]}, {gpcount}x (GPULSE=0x{gpulse:02X})")
     print(f"  G-Entry-TH: {gpenth}")
     print(f"  G-Exit-TH:  {gpexth}")
+
+    def signed(v):
+        return v - 256 if v > 127 else v
+
+    goff_u = sensor._read_byte(REG_GOFFSET_U)
+    goff_d = sensor._read_byte(REG_GOFFSET_D)
+    goff_l = sensor._read_byte(REG_GOFFSET_L)
+    goff_r = sensor._read_byte(REG_GOFFSET_R)
+    print(f"  G-Offset:   U={signed(goff_u):+4d}  D={signed(goff_d):+4d}  "
+          f"L={signed(goff_l):+4d}  R={signed(goff_r):+4d}")
     print()
 
 
