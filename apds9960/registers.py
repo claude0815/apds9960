@@ -97,7 +97,7 @@ BIT_GMODE = 0x01      # Gesture mode
 # -----------------------------------------------------------------------------
 DEFAULT_ATIME = 219       # 103ms integration time
 DEFAULT_WTIME = 246       # 27ms wait time
-DEFAULT_PPULSE = 0x84     # 16us, 5 pulses
+DEFAULT_PPULSE = 0x00     # 4us, 1 pulse (minimum)
 DEFAULT_POFFSET_UR = 0
 DEFAULT_POFFSET_DL = 0
 DEFAULT_CONFIG1 = 0x60    # No 12x wait (WLONG = 0)
@@ -115,7 +115,7 @@ DEFAULT_GPENTH = 40       # Gesture entry threshold
 DEFAULT_GPEXTH = 30       # Gesture exit threshold
 DEFAULT_GCONF1 = 0x40     # 4 gesture events for interrupt, 1 event per fifo
 DEFAULT_GCONF2 = 0x19     # Gain 1x, LED drive 12.5mA, 8us gesture wait
-DEFAULT_GPULSE = 0x84     # 16us, 5 pulses
+DEFAULT_GPULSE = 0x00     # 4us, 1 pulse (minimum)
 DEFAULT_GOFFSET = 0
 DEFAULT_GCONF3 = 0        # All photodiodes active during gesture
 DEFAULT_GCONF4 = 0        # Gesture interrupts disabled, gesture mode off

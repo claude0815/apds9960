@@ -191,8 +191,8 @@ class APDS9960:
         self._bus.write_byte_data(self._address, reg + 1, (value >> 8) & 0xFF)
 
     def _read_block(self, reg, length):
-        """Read a block of bytes. Uses individual reads for compatibility."""
-        return [self._bus.read_byte_data(self._address, reg + i) for i in range(length)]
+        """Read a block of bytes in a single I2C transaction."""
+        return self._bus.read_i2c_block_data(self._address, reg, length)
 
     def _set_bits(self, reg, mask):
         val = self._read_byte(reg)
