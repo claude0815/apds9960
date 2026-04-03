@@ -60,6 +60,7 @@ from apds9960.registers import (
     BIT_AVALID,
     BIT_GVALID,
     BIT_GFIFO_CLR,
+    BIT_GIEN,
     BIT_GMODE,
     GESTURE_NONE,
     GESTURE_UP,
