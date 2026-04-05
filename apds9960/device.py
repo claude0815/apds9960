@@ -347,51 +347,45 @@ class APDS9960:
     def _decode_gesture(self, data):
         """Decode gesture from FIFO data.
 
-        Uses temporal changes in DOWN and RIGHT channels, since cheap
-        APDS9960 clones often have UP and LEFT permanently saturated at 255.
-
-        Detection logic:
-        - DOWN channel changes → UP/DOWN gesture (hand blocks D photodiode)
-        - RIGHT channel changes → LEFT/RIGHT gesture (hand blocks R photodiode)
-        - Both channels rising → NEAR, both falling → FAR
+        Uses temporal changes in D, L, R channels. UP is often saturated
+        at 255 on cheap APDS9960 clones, so we detect UP/DOWN via D alone
+        and LEFT/RIGHT via the L-R difference.
         """
-        # Extract D and R time series
+        # Extract time series
         d_values = [s.down for s in data]
+        l_values = [s.left for s in data]
         r_values = [s.right for s in data]
+        lr_values = [s.left - s.right for s in data]
 
-        # Calculate range (max - min) for each channel
+        # Calculate range (max - min) for each axis
         d_range = max(d_values) - min(d_values)
-        r_range = max(r_values) - min(r_values)
+        lr_range = max(lr_values) - min(lr_values)
 
         # Need minimum variation to detect a gesture
-        if d_range < self.GESTURE_SENSITIVITY and r_range < self.GESTURE_SENSITIVITY:
+        if d_range < self.GESTURE_SENSITIVITY and lr_range < self.GESTURE_SENSITIVITY:
             return GESTURE_NONE
 
         # Compare first quarter vs last quarter for direction
         quarter = max(1, len(data) // 4)
         d_first = sum(d_values[:quarter]) / quarter
         d_last = sum(d_values[-quarter:]) / quarter
-        r_first = sum(r_values[:quarter]) / quarter
-        r_last = sum(r_values[-quarter:]) / quarter
+        lr_first = sum(lr_values[:quarter]) / quarter
+        lr_last = sum(lr_values[-quarter:]) / quarter
 
         d_delta = d_last - d_first
-        r_delta = r_last - r_first
+        lr_delta = lr_last - lr_first
 
         # Determine dominant axis
-        if d_range > r_range:
-            # Vertical gesture (UP/DOWN) detected via DOWN channel
+        if d_range > lr_range:
+            # Vertical gesture detected via DOWN channel
             if abs(d_delta) < self.GESTURE_SENSITIVITY:
                 return GESTURE_NONE
-            # D rises → hand approaching from above (DOWN gesture)
-            # D falls → hand approaching from below (UP gesture)
             return GESTURE_DOWN if d_delta > 0 else GESTURE_UP
         else:
-            # Horizontal gesture (LEFT/RIGHT) detected via RIGHT channel
-            if abs(r_delta) < self.GESTURE_SENSITIVITY:
+            # Horizontal gesture detected via LEFT-RIGHT difference
+            if abs(lr_delta) < self.GESTURE_SENSITIVITY:
                 return GESTURE_NONE
-            # R rises → hand approaching from left (RIGHT gesture)
-            # R falls → hand approaching from right (LEFT gesture)
-            return GESTURE_RIGHT if r_delta > 0 else GESTURE_LEFT
+            return GESTURE_RIGHT if lr_delta > 0 else GESTURE_LEFT
 
     @staticmethod
     def gesture_name(gesture):
