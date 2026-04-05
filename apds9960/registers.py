@@ -97,12 +97,12 @@ BIT_GMODE = 0x01      # Gesture mode
 # -----------------------------------------------------------------------------
 DEFAULT_ATIME = 219       # 103ms integration time
 DEFAULT_WTIME = 246       # 27ms wait time
-DEFAULT_PPULSE = 0x87     # 16us, 8 pulses
+DEFAULT_PPULSE = 0x89     # 16us, 10 pulses (more range)
 DEFAULT_POFFSET_UR = 0
 DEFAULT_POFFSET_DL = 0
 DEFAULT_CONFIG1 = 0x60    # No 12x wait (WLONG = 0)
 DEFAULT_LDRIVE = 0        # LED drive: 100mA
-DEFAULT_PGAIN = 1         # Proximity gain: 2x
+DEFAULT_PGAIN = 2         # Proximity gain: 4x (more detection range)
 DEFAULT_AGAIN = 1         # ALS gain: 4x
 DEFAULT_PILT = 0
 DEFAULT_PIHT = 50
@@ -111,8 +111,8 @@ DEFAULT_AIHT = 0
 DEFAULT_PERS = 0x11       # 2 consecutive proximity or ALS for interrupt
 DEFAULT_CONFIG2 = 0x01    # No saturation interrupts or LED boost
 DEFAULT_CONFIG3 = 0       # Enable all photodiodes, no SAI
-DEFAULT_GPENTH = 80       # Gesture entry threshold (idle proximity ~63)
-DEFAULT_GPEXTH = 50       # Gesture exit threshold
+DEFAULT_GPENTH = 100      # Gesture entry threshold (needs calibration with idle proximity)
+DEFAULT_GPEXTH = 60       # Gesture exit threshold
 DEFAULT_GCONF1 = 0x40     # 4 gesture events for interrupt, 1 event per fifo
 DEFAULT_GCONF2 = 0x01     # Gain 1x, LED drive 100mA, 8us gesture wait
 DEFAULT_GPULSE = 0x85     # 16us, 6 pulses
