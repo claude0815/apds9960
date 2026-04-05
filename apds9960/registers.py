@@ -97,12 +97,12 @@ BIT_GMODE = 0x01      # Gesture mode
 # -----------------------------------------------------------------------------
 DEFAULT_ATIME = 219       # 103ms integration time
 DEFAULT_WTIME = 246       # 27ms wait time
-DEFAULT_PPULSE = 0x00     # 4us, 1 pulse (minimum)
+DEFAULT_PPULSE = 0x87     # 16us, 8 pulses
 DEFAULT_POFFSET_UR = 0
 DEFAULT_POFFSET_DL = 0
 DEFAULT_CONFIG1 = 0x60    # No 12x wait (WLONG = 0)
-DEFAULT_LDRIVE = 3        # LED drive: 12.5mA (reduced to avoid saturation)
-DEFAULT_PGAIN = 0         # Proximity gain: 1x
+DEFAULT_LDRIVE = 0        # LED drive: 100mA
+DEFAULT_PGAIN = 2         # Proximity gain: 4x
 DEFAULT_AGAIN = 1         # ALS gain: 4x
 DEFAULT_PILT = 0
 DEFAULT_PIHT = 50
@@ -114,8 +114,8 @@ DEFAULT_CONFIG3 = 0       # Enable all photodiodes, no SAI
 DEFAULT_GPENTH = 40       # Gesture entry threshold
 DEFAULT_GPEXTH = 30       # Gesture exit threshold
 DEFAULT_GCONF1 = 0x40     # 4 gesture events for interrupt, 1 event per fifo
-DEFAULT_GCONF2 = 0x19     # Gain 1x, LED drive 12.5mA, 8us gesture wait
-DEFAULT_GPULSE = 0x00     # 4us, 1 pulse (minimum)
+DEFAULT_GCONF2 = 0x41     # Gain 1x, LED drive 100mA, 8us gesture wait
+DEFAULT_GPULSE = 0xC9     # 32us, 10 pulses
 DEFAULT_GOFFSET_U = 0     # Offsets not effective on cheap clones
 DEFAULT_GOFFSET_D = 0
 DEFAULT_GOFFSET_L = 0
