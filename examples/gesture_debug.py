@@ -12,7 +12,7 @@ from apds9960 import APDS9960
 from apds9960.registers import (
     REG_GFIFO_U, REG_GFLVL, REG_GSTATUS, BIT_GVALID,
     REG_CONTROL, REG_GCONF2, REG_PPULSE, REG_GPULSE, REG_CONFIG2,
-    REG_GPENTH, REG_GPEXTH, REG_ENABLE,
+    REG_GPENTH, REG_GPEXTH, REG_ENABLE, REG_PDATA,
     REG_GOFFSET_U, REG_GOFFSET_D, REG_GOFFSET_L, REG_GOFFSET_R,
 )
 
@@ -75,6 +75,14 @@ def main():
     sensor.enable_gesture()
 
     print_register_config(sensor)
+
+    # Show idle proximity value for threshold calibration
+    print("Proximity-Wert ohne Hand (für Threshold-Kalibrierung):")
+    for i in range(5):
+        prox = sensor._read_byte(REG_PDATA)
+        print(f"  Proximity: {prox}")
+        time.sleep(0.2)
+    print()
 
     print("Bewege deine Hand langsam über den Sensor.")
     print("Spalten: UP  DOWN  LEFT  RIGHT  | UD-Diff  LR-Diff")
