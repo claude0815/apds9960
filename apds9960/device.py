@@ -345,44 +345,39 @@ class APDS9960:
         return self._decode_gesture(fifo_data)
 
     def _decode_gesture(self, data):
-        """Decode gesture from FIFO data.
+        """Decode gesture from FIFO data using all 4 channels.
 
-        Uses temporal changes in D, L, R channels. UP is often saturated
-        at 255 on cheap APDS9960 clones, so we detect UP/DOWN via D alone
-        and LEFT/RIGHT via the L-R difference.
+        Uses U-D difference for vertical and L-R difference for horizontal
+        gesture detection. Compares first vs last quarter of samples.
         """
-        # Extract time series
-        d_values = [s.down for s in data]
-        l_values = [s.left for s in data]
-        r_values = [s.right for s in data]
+        # Calculate per-sample differences
+        ud_values = [s.up - s.down for s in data]
         lr_values = [s.left - s.right for s in data]
 
         # Calculate range (max - min) for each axis
-        d_range = max(d_values) - min(d_values)
+        ud_range = max(ud_values) - min(ud_values)
         lr_range = max(lr_values) - min(lr_values)
 
         # Need minimum variation to detect a gesture
-        if d_range < self.GESTURE_SENSITIVITY and lr_range < self.GESTURE_SENSITIVITY:
+        if ud_range < self.GESTURE_SENSITIVITY and lr_range < self.GESTURE_SENSITIVITY:
             return GESTURE_NONE
 
         # Compare first quarter vs last quarter for direction
         quarter = max(1, len(data) // 4)
-        d_first = sum(d_values[:quarter]) / quarter
-        d_last = sum(d_values[-quarter:]) / quarter
+        ud_first = sum(ud_values[:quarter]) / quarter
+        ud_last = sum(ud_values[-quarter:]) / quarter
         lr_first = sum(lr_values[:quarter]) / quarter
         lr_last = sum(lr_values[-quarter:]) / quarter
 
-        d_delta = d_last - d_first
+        ud_delta = ud_last - ud_first
         lr_delta = lr_last - lr_first
 
         # Determine dominant axis
-        if d_range > lr_range:
-            # Vertical gesture detected via DOWN channel
-            if abs(d_delta) < self.GESTURE_SENSITIVITY:
+        if abs(ud_delta) > abs(lr_delta):
+            if abs(ud_delta) < self.GESTURE_SENSITIVITY:
                 return GESTURE_NONE
-            return GESTURE_DOWN if d_delta > 0 else GESTURE_UP
+            return GESTURE_UP if ud_delta > 0 else GESTURE_DOWN
         else:
-            # Horizontal gesture detected via LEFT-RIGHT difference
             if abs(lr_delta) < self.GESTURE_SENSITIVITY:
                 return GESTURE_NONE
             return GESTURE_RIGHT if lr_delta > 0 else GESTURE_LEFT
