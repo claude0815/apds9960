@@ -122,11 +122,11 @@ def handle_gesture(gesture):
         print("<- Links: Strg + 9")
         keyboard.press_and_release("ctrl+9")
     elif gesture == GESTURE_UP:
-        print("↑  Hoch: F11")
-        keyboard.press_and_release("f11")
+        print("↑  Hoch: Strg + Shift + F")
+        keyboard.press_and_release("ctrl+shift+f")
     elif gesture == GESTURE_DOWN:
-        print("↓  Runter: F11")
-        keyboard.press_and_release("f11")
+        print("↓  Runter: Strg + Shift + F")
+        keyboard.press_and_release("ctrl+shift+f")
 
 
 def main():
