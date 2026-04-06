@@ -122,8 +122,10 @@ def handle_gesture(gesture):
         print("<- Links: Strg + 9")
         keyboard.press_and_release("ctrl+9")
     elif gesture == GESTURE_UP:
-        print("↑  Hoch: Alt + F4")
-        keyboard.press_and_release("alt+f4")
+        print("↑  Hoch: Esc (3 Sekunden)")
+        keyboard.press("esc")
+        time.sleep(3)
+        keyboard.release("esc")
     elif gesture == GESTURE_DOWN:
         print("↓  Runter: Alt + F4")
         keyboard.press_and_release("alt+f4")
