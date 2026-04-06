@@ -376,7 +376,7 @@ class APDS9960:
         if abs(ud_delta) > abs(lr_delta):
             if abs(ud_delta) < self.GESTURE_SENSITIVITY:
                 return GESTURE_NONE
-            return GESTURE_UP if ud_delta > 0 else GESTURE_DOWN
+            return GESTURE_DOWN if ud_delta > 0 else GESTURE_UP
         else:
             if abs(lr_delta) < self.GESTURE_SENSITIVITY:
                 return GESTURE_NONE
