@@ -370,26 +370,23 @@ class APDS9960:
         lr_delta = lr_last - lr_first
         total_delta = total_last - total_first
 
-        # Check near/far first: all values rise/fall together
-        # while UD and LR differences stay relatively stable
-        max_dir_delta = max(abs(ud_delta), abs(lr_delta))
-        if abs(total_delta) > 100 and abs(total_delta) > max_dir_delta * 3:
-            return GESTURE_NEAR if total_delta > 0 else GESTURE_FAR
-
         # Calculate range (max - min) for directional detection
         ud_range = max(ud_values) - min(ud_values)
         lr_range = max(lr_values) - min(lr_values)
 
-        if ud_range < self.GESTURE_SENSITIVITY and lr_range < self.GESTURE_SENSITIVITY:
-            return GESTURE_NONE
+        # Directional gestures first (UP/DOWN/LEFT/RIGHT)
+        if ud_range >= self.GESTURE_SENSITIVITY or lr_range >= self.GESTURE_SENSITIVITY:
+            if abs(ud_delta) > abs(lr_delta):
+                if abs(ud_delta) >= self.GESTURE_SENSITIVITY:
+                    return GESTURE_DOWN if ud_delta > 0 else GESTURE_UP
+            else:
+                if abs(lr_delta) >= self.GESTURE_SENSITIVITY:
+                    return GESTURE_RIGHT if lr_delta > 0 else GESTURE_LEFT
 
-        # Determine dominant axis
-        if abs(ud_delta) > abs(lr_delta):
-            if abs(ud_delta) >= self.GESTURE_SENSITIVITY:
-                return GESTURE_DOWN if ud_delta > 0 else GESTURE_UP
-        else:
-            if abs(lr_delta) >= self.GESTURE_SENSITIVITY:
-                return GESTURE_RIGHT if lr_delta > 0 else GESTURE_LEFT
+        # Near/Far: total brightness changes but UD/LR differences stay small
+        if abs(total_delta) > 100:
+            if ud_range < self.GESTURE_SENSITIVITY and lr_range < self.GESTURE_SENSITIVITY:
+                return GESTURE_NEAR if total_delta > 0 else GESTURE_FAR
 
         return GESTURE_NONE
 
