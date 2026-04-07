@@ -26,6 +26,7 @@ Als Hintergrundprozess starten:
 """
 
 import time
+import subprocess
 import keyboard
 from apds9960 import APDS9960
 from apds9960.registers import (
@@ -33,6 +34,8 @@ from apds9960.registers import (
     GESTURE_LEFT,
     GESTURE_UP,
     GESTURE_DOWN,
+    GESTURE_NEAR,
+    GESTURE_FAR,
 )
 
 # --- Konfiguration ---
@@ -129,6 +132,12 @@ def handle_gesture(gesture):
     elif gesture == GESTURE_DOWN:
         print("↓  Runter: F5")
         keyboard.press_and_release("f5")
+    elif gesture == GESTURE_NEAR:
+        print("●  Near: connect.sh")
+        subprocess.Popen(["/home/pi/connect.sh"])
+    elif gesture == GESTURE_FAR:
+        print("○  Far: disconnect.sh")
+        subprocess.Popen(["/home/pi/disconnect.sh"])
 
 
 def main():

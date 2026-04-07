@@ -373,14 +373,25 @@ class APDS9960:
         lr_delta = lr_last - lr_first
 
         # Determine dominant axis
+        gesture = GESTURE_NONE
         if abs(ud_delta) > abs(lr_delta):
-            if abs(ud_delta) < self.GESTURE_SENSITIVITY:
-                return GESTURE_NONE
-            return GESTURE_DOWN if ud_delta > 0 else GESTURE_UP
+            if abs(ud_delta) >= self.GESTURE_SENSITIVITY:
+                gesture = GESTURE_DOWN if ud_delta > 0 else GESTURE_UP
         else:
-            if abs(lr_delta) < self.GESTURE_SENSITIVITY:
-                return GESTURE_NONE
-            return GESTURE_RIGHT if lr_delta > 0 else GESTURE_LEFT
+            if abs(lr_delta) >= self.GESTURE_SENSITIVITY:
+                gesture = GESTURE_RIGHT if lr_delta > 0 else GESTURE_LEFT
+
+        # Check for near/far if no directional gesture detected
+        # Near: all values rise together, Far: all values fall together
+        if gesture == GESTURE_NONE:
+            total_first = sum(data[0])
+            total_last = sum(data[-1])
+            if total_last > total_first * 1.5 and total_last > 200:
+                gesture = GESTURE_NEAR
+            elif total_first > total_last * 1.5 and total_first > 200:
+                gesture = GESTURE_FAR
+
+        return gesture
 
     @staticmethod
     def gesture_name(gesture):
