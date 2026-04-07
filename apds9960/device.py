@@ -354,44 +354,44 @@ class APDS9960:
         ud_values = [s.up - s.down for s in data]
         lr_values = [s.left - s.right for s in data]
 
-        # Calculate range (max - min) for each axis
-        ud_range = max(ud_values) - min(ud_values)
-        lr_range = max(lr_values) - min(lr_values)
+        # Calculate total brightness per sample (for near/far detection)
+        totals = [s.up + s.down + s.left + s.right for s in data]
 
-        # Need minimum variation to detect a gesture
-        if ud_range < self.GESTURE_SENSITIVITY and lr_range < self.GESTURE_SENSITIVITY:
-            return GESTURE_NONE
-
-        # Compare first quarter vs last quarter for direction
+        # Compare first quarter vs last quarter
         quarter = max(1, len(data) // 4)
         ud_first = sum(ud_values[:quarter]) / quarter
         ud_last = sum(ud_values[-quarter:]) / quarter
         lr_first = sum(lr_values[:quarter]) / quarter
         lr_last = sum(lr_values[-quarter:]) / quarter
+        total_first = sum(totals[:quarter]) / quarter
+        total_last = sum(totals[-quarter:]) / quarter
 
         ud_delta = ud_last - ud_first
         lr_delta = lr_last - lr_first
+        total_delta = total_last - total_first
+
+        # Check near/far first: all values rise/fall together
+        # while UD and LR differences stay relatively stable
+        max_dir_delta = max(abs(ud_delta), abs(lr_delta))
+        if abs(total_delta) > 100 and abs(total_delta) > max_dir_delta * 3:
+            return GESTURE_NEAR if total_delta > 0 else GESTURE_FAR
+
+        # Calculate range (max - min) for directional detection
+        ud_range = max(ud_values) - min(ud_values)
+        lr_range = max(lr_values) - min(lr_values)
+
+        if ud_range < self.GESTURE_SENSITIVITY and lr_range < self.GESTURE_SENSITIVITY:
+            return GESTURE_NONE
 
         # Determine dominant axis
-        gesture = GESTURE_NONE
         if abs(ud_delta) > abs(lr_delta):
             if abs(ud_delta) >= self.GESTURE_SENSITIVITY:
-                gesture = GESTURE_DOWN if ud_delta > 0 else GESTURE_UP
+                return GESTURE_DOWN if ud_delta > 0 else GESTURE_UP
         else:
             if abs(lr_delta) >= self.GESTURE_SENSITIVITY:
-                gesture = GESTURE_RIGHT if lr_delta > 0 else GESTURE_LEFT
+                return GESTURE_RIGHT if lr_delta > 0 else GESTURE_LEFT
 
-        # Check for near/far if no directional gesture detected
-        # Near: all values rise together, Far: all values fall together
-        if gesture == GESTURE_NONE:
-            total_first = sum(data[0])
-            total_last = sum(data[-1])
-            if total_last > total_first * 1.5 and total_last > 200:
-                gesture = GESTURE_NEAR
-            elif total_first > total_last * 1.5 and total_first > 200:
-                gesture = GESTURE_FAR
-
-        return gesture
+        return GESTURE_NONE
 
     @staticmethod
     def gesture_name(gesture):
