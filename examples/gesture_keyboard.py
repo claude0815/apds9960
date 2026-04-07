@@ -119,16 +119,16 @@ def handle_gesture(gesture):
         print("-> Rechts: Strg + Tab")
         keyboard.press_and_release("ctrl+tab")
     elif gesture == GESTURE_LEFT:
-        print("<- Links: Strg + 9")
-        keyboard.press_and_release("ctrl+9")
+        print("<- Links: Alt + Tab")
+        keyboard.press_and_release("alt+tab")
     elif gesture == GESTURE_UP:
         print("↑  Hoch: Esc (3 Sekunden)")
         keyboard.press("esc")
         time.sleep(3)
         keyboard.release("esc")
     elif gesture == GESTURE_DOWN:
-        print("↓  Runter: Alt + F4")
-        keyboard.press_and_release("alt+f4")
+        print("↓  Runter: F5")
+        keyboard.press_and_release("f5")
 
 
 def main():
