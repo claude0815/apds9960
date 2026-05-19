@@ -111,7 +111,7 @@ class APDS9960:
         address: I2C device address (default: 0x39).
     """
 
-    GESTURE_SENSITIVITY = 20
+    GESTURE_SENSITIVITY = 10
 
     def __init__(self, bus=1, address=DEVICE_ADDRESS):
         self._address = address
@@ -353,19 +353,13 @@ class APDS9960:
         if ud_range < self.GESTURE_SENSITIVITY and lr_range < self.GESTURE_SENSITIVITY:
             return GESTURE_NONE
 
-        # Compare first quarter vs last quarter for direction
-        quarter = max(1, len(data) // 4)
-        ud_first = sum(ud_values[:quarter]) / quarter
-        ud_last = sum(ud_values[-quarter:]) / quarter
-        lr_first = sum(lr_values[:quarter]) / quarter
-        lr_last = sum(lr_values[-quarter:]) / quarter
+        # Direction: compare first and last samples directly
+        ud_delta = ud_values[-1] - ud_values[0]
+        lr_delta = lr_values[-1] - lr_values[0]
 
-        ud_delta = ud_last - ud_first
-        lr_delta = lr_last - lr_first
-
-        # Determine dominant axis
+        # Dominant axis selected by range (total variation), not delta
         gesture = GESTURE_NONE
-        if abs(ud_delta) > abs(lr_delta):
+        if ud_range > lr_range:
             if abs(ud_delta) >= self.GESTURE_SENSITIVITY:
                 gesture = GESTURE_DOWN if ud_delta > 0 else GESTURE_UP
         else:
