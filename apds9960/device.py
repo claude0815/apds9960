@@ -61,14 +61,11 @@ from apds9960.registers import (
     BIT_GVALID,
     BIT_GFIFO_CLR,
     BIT_GIEN,
-    BIT_GMODE,
     GESTURE_NONE,
     GESTURE_UP,
     GESTURE_DOWN,
     GESTURE_LEFT,
     GESTURE_RIGHT,
-    GESTURE_NEAR,
-    GESTURE_FAR,
     GESTURE_NAMES,
     DEFAULT_ATIME,
     DEFAULT_WTIME,
@@ -114,8 +111,6 @@ class APDS9960:
         address: I2C device address (default: 0x39).
     """
 
-    # Gesture processing parameters
-    GESTURE_THRESHOLD = 30
     GESTURE_SENSITIVITY = 20
 
     def __init__(self, bus=1, address=DEVICE_ADDRESS):
@@ -123,10 +118,6 @@ class APDS9960:
         self._bus = SMBus(bus)
         self._gesture_ud_delta = 0
         self._gesture_lr_delta = 0
-        self._gesture_ud_count = 0
-        self._gesture_lr_count = 0
-        self._gesture_near_count = 0
-        self._gesture_far_count = 0
 
         # Verify device ID
         device_id = self._read_byte(REG_ID)
@@ -316,7 +307,7 @@ class APDS9960:
 
         Returns:
             int: One of GESTURE_NONE, GESTURE_UP, GESTURE_DOWN,
-                 GESTURE_LEFT, GESTURE_RIGHT, GESTURE_NEAR, GESTURE_FAR.
+                 GESTURE_LEFT, GESTURE_RIGHT.
         """
         fifo_data = []
 
@@ -380,16 +371,6 @@ class APDS9960:
         else:
             if abs(lr_delta) >= self.GESTURE_SENSITIVITY:
                 gesture = GESTURE_RIGHT if lr_delta > 0 else GESTURE_LEFT
-
-        # Check for near/far if no directional gesture detected
-        # Near: all values rise together, Far: all values fall together
-        if gesture == GESTURE_NONE:
-            total_first = sum(data[0])
-            total_last = sum(data[-1])
-            if total_last > total_first * 1.5 and total_last > 200:
-                gesture = GESTURE_NEAR
-            elif total_first > total_last * 1.5 and total_first > 200:
-                gesture = GESTURE_FAR
 
         return gesture
 

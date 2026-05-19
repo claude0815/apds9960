@@ -7,9 +7,9 @@ Läuft als Hintergrundprozess, unabhängig von X11/Wayland.
 
 Gesten-Zuordnung:
     Rechts  -> Strg + Tab
-    Links   -> Strg + 9
-    Hoch    -> F11
-    Runter  -> F11
+    Links   -> Alt + Tab
+    Hoch    -> Esc (3 Sekunden gedrückt)
+    Runter  -> F5
 
 Verkabelung (optional, für Interrupt-Modus):
     APDS9960 INT -> GPIO 4 (Pin 7) am Raspberry Pi
@@ -26,7 +26,6 @@ Als Hintergrundprozess starten:
 """
 
 import time
-import subprocess
 import keyboard
 from apds9960 import APDS9960
 from apds9960.registers import (
@@ -34,16 +33,12 @@ from apds9960.registers import (
     GESTURE_LEFT,
     GESTURE_UP,
     GESTURE_DOWN,
-    GESTURE_NEAR,
-    GESTURE_FAR,
 )
 
 # --- Konfiguration ---
 I2C_BUS = 1
 GPIO_CHIP = "/dev/gpiochip0"  # RPi 5: pinctrl-rp1
 GPIO_INT_PIN = 4               # GPIO-Pin für INT-Leitung des APDS9960
-GESTURE_ENTRY_THRESHOLD = 30   # Niedriger = empfindlicher (Standard: 40)
-GESTURE_EXIT_THRESHOLD = 20    # Niedriger = mehr Daten gesammelt (Standard: 30)
 
 
 # -------------------------------------------------------------------------
@@ -132,28 +127,18 @@ def handle_gesture(gesture):
     elif gesture == GESTURE_DOWN:
         print("↓  Runter: F5")
         keyboard.press_and_release("f5")
-    elif gesture == GESTURE_NEAR:
-        print("●  Near: connect.sh")
-        subprocess.Popen(["/home/pi/connect.sh"])
-    elif gesture == GESTURE_FAR:
-        print("○  Far: disconnect.sh")
-        subprocess.Popen(["/home/pi/disconnect.sh"])
 
 
 def main():
     print("Gestengesteuerte Tastenkombinationen")
     print("=" * 55)
     print("Rechts -> Strg + Tab")
-    print("Links  -> Strg + 9")
-    print("Hoch   -> F11")
-    print("Runter -> F11")
+    print("Links  -> Alt + Tab")
+    print("Hoch   -> Esc (3 Sekunden)")
+    print("Runter -> F5")
     print("=" * 55)
 
     sensor = APDS9960(bus=I2C_BUS)
-
-    # Empfindlichkeit optimieren
-    sensor.set_gesture_thresholds(enter=GESTURE_ENTRY_THRESHOLD,
-                                  exit=GESTURE_EXIT_THRESHOLD)
 
     # Interrupt versuchen, sonst Polling
     int_handle = _try_setup_interrupt()
