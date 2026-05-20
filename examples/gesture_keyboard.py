@@ -8,7 +8,7 @@ Läuft als Hintergrundprozess, unabhängig von X11/Wayland.
 Gesten-Zuordnung:
     Rechts  -> Strg + Tab
     Links   -> Alt + Tab
-    Hoch    -> Esc (3 Sekunden gedrückt)
+    Hoch    -> HDMI einschalten (wlopm)
     Runter  -> F5
 
 Verkabelung (optional, für Interrupt-Modus):
@@ -26,6 +26,7 @@ Als Hintergrundprozess starten:
 """
 
 import time
+import subprocess
 import keyboard
 from apds9960 import APDS9960
 from apds9960.registers import (
@@ -120,10 +121,12 @@ def handle_gesture(gesture):
         print("<- Links: Alt + Tab")
         keyboard.press_and_release("alt+tab")
     elif gesture == GESTURE_UP:
-        print("↑  Hoch: Esc (3 Sekunden)")
-        keyboard.press("esc")
-        time.sleep(3)
-        keyboard.release("esc")
+        print("↑  Hoch: HDMI einschalten")
+        subprocess.run(
+            ["wlopm", "--on", "HDMI-A-1"],
+            env={"WAYLAND_DISPLAY": "wayland-0",
+                 "XDG_RUNTIME_DIR": "/run/user/1000"},
+        )
     elif gesture == GESTURE_DOWN:
         print("↓  Runter: F5")
         keyboard.press_and_release("f5")
@@ -134,7 +137,7 @@ def main():
     print("=" * 55)
     print("Rechts -> Strg + Tab")
     print("Links  -> Alt + Tab")
-    print("Hoch   -> Esc (3 Sekunden)")
+    print("Hoch   -> HDMI einschalten")
     print("Runter -> F5")
     print("=" * 55)
 
