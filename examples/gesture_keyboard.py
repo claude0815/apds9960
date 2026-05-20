@@ -8,7 +8,7 @@ Läuft als Hintergrundprozess, unabhängig von X11/Wayland.
 Gesten-Zuordnung:
     Rechts  -> Strg + Tab
     Links   -> Alt + Tab
-    Hoch    -> HDMI einschalten (wlopm)
+    Hoch    -> Monitor einschalten (ddcutil)
     Runter  -> F5
 
 Verkabelung (optional, für Interrupt-Modus):
@@ -121,11 +121,9 @@ def handle_gesture(gesture):
         print("<- Links: Alt + Tab")
         keyboard.press_and_release("alt+tab")
     elif gesture == GESTURE_UP:
-        print("↑  Hoch: HDMI einschalten")
+        print("↑  Hoch: Monitor einschalten")
         subprocess.run(
-            ["wlopm", "--on", "HDMI-A-1"],
-            env={"WAYLAND_DISPLAY": "wayland-0",
-                 "XDG_RUNTIME_DIR": "/run/user/1000"},
+            ["ddcutil", "--model", "ANMITE", "setvcp", "d6", "1"],
         )
     elif gesture == GESTURE_DOWN:
         print("↓  Runter: F5")
@@ -137,7 +135,7 @@ def main():
     print("=" * 55)
     print("Rechts -> Strg + Tab")
     print("Links  -> Alt + Tab")
-    print("Hoch   -> HDMI einschalten")
+    print("Hoch   -> Monitor einschalten")
     print("Runter -> F5")
     print("=" * 55)
 
